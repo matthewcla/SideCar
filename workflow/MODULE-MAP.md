@@ -11,7 +11,7 @@
 - **Files:** `sidecar-app/src/Landing/Landing.tsx`, `sidecar-app/src/Landing/Landing.css`
 - **Write:** `sidecar-app/src/Landing/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
-- **Focus Directives:** UI-UX.md, ONBOARDING.md
+- **Focus Directives:** UI-UX.md
 - **All Directives Loaded:** Yes (as background guardrails)
 - **Key Constraints:** C-01, C-02, C-04, C-05, C-08, C-11, C-12, C-13
 - **Context:** Entry point. Intelligence Bar search. 90-second flag officer test applies. Smart Pill operational summary. Role selector (Detailer/Placement modes).
@@ -23,7 +23,7 @@
 - **Files:** `sidecar-app/src/Workspace/Workspace.tsx`, `sidecar-app/src/Workspace/Workspace.css`
 - **Write:** `sidecar-app/src/Workspace/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
-- **Focus Directives:** UI-UX.md, UX-PATTERNS.md, INTEGRATIONS.md, TESTING.md
+- **Focus Directives:** UI-UX.md, UX-PATTERNS.md, INTEGRATIONS.md
 - **All Directives Loaded:** Yes (as background guardrails)
 - **Key Constraints:** C-01, C-02, C-03, C-04, C-08, C-09, C-11, C-12, C-13, C-14
 - **Context:** Consolidated detailer/placement work surface. Three-tab interface: Roster table, Calendar week view, Action notifications. Slide-out comm panel. Uses SideCarAdapter.getSailors, getCommLog, getBillets, getCommands.
@@ -54,7 +54,7 @@
 - **Files:** `sidecar-app/src/Command/Command.tsx`, `sidecar-app/src/Command/Command.css`
 - **Write:** `sidecar-app/src/Command/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
-- **Focus Directives:** UI-UX.md, INTEGRATIONS.md, TESTING.md
+- **Focus Directives:** UI-UX.md, INTEGRATIONS.md
 - **All Directives Loaded:** Yes (as background guardrails)
 - **Key Constraints:** C-01, C-02, C-03, C-04, C-08, C-09, C-11, C-12, C-13, C-14
 - **Context:** Command-level manning view. Command cards with manning percentages, expandable detail showing billets and assigned personnel. Uses SideCarAdapter.getCommands, getBillets.
@@ -135,7 +135,7 @@
 
 ## MOD-DIR: Directive Library (Tier 1 Only)
 
-- **Files:** `directives/*`, `WHITE_PAPER.md`, `ONBOARDING.md`
+- **Files:** `directives/*`, `WHITE_PAPER.md`
 - **Write:** Tier 1 authorization required
 - **Read:** All (loaded at every session start)
 - **Focus Directives:** N/A — these ARE the directives
@@ -146,4 +146,4 @@
 
 ## Cross-Module Authorization
 
-When a task inherently requires changes across module boundaries (e.g., adding a new feature that touches both a component TSX and the shared services), the developer declares the cross-module scope at session start. The agent confirms the expanded boundary and proceeds. No separate session is required for routine cross-cutting work. The boundary confirmation at session close documents which files were actually touched.
+When a task inherently requires changes across module boundaries (e.g., adding a new feature that touches both a component TSX and the shared services), the developer declares the cross-module scope at session start. The developer confirms the expanded boundary and proceeds. No separate session is required for routine cross-cutting work. The boundary confirmation at session close documents which files were actually touched.

@@ -12,7 +12,7 @@ Navy Personnel Command · NPC Agentic Lab · March 2026
 git clone https://github.com/DevinnOneill/Project-Sidecar.git && cd Project-Sidecar/sidecar-app && npm install && npm run dev
 ```
 
-**That's it.** Copy-paste the command above, hit Enter, and the onboarding agent walks you through everything:
+**That's it.** Copy-paste the command above, hit Enter, and the onboarding script walks you through everything:
 
 | What It Does | Time |
 |---|---|
@@ -59,8 +59,8 @@ This project uses a **governed development framework**. Here's the short version
 ### Branch Workflow
 
 ```
-dev-1 or dev-2  →  qa-staging  →  main
-  (your team)       (review)      (production)
+dev-1 or dev-2  →  main
+  (your team)      (production)
 ```
 
 The project uses exactly four fixed branches. Developers push to their assigned branch (dev-1 or dev-2). Nobody creates new branches. Nobody's code goes straight to production. Ever.
@@ -126,19 +126,10 @@ Project-Sidecar/
 │   ├── DEVELOPMENT.md ........ Code standards, commit format
 │   ├── SECURITY.md ........... Data boundary law
 │   ├── UI-UX.md .............. Design system specs
-│   ├── INTEGRATIONS.md ....... Adapter contracts
-│   ├── AUDIT.md .............. Verification protocol
-│   ├── TESTING.md ............ Quality gate
-│   └── ONBOARDING.md ......... Developer onboarding checklist
+│   └── INTEGRATIONS.md ....... Adapter contracts
 │
 ├── workflow/ .................. Module routing
 │   └── MODULE-MAP.md ......... Which module owns which file
-│
-├── sessions/ ................. Session logs (append-only)
-└── lessons/ .................. Learning from every session
-    ├── halts.md .............. Halt events log
-    ├── exemplars.md .......... High-scoring outputs
-    └── patterns.md ........... Recurring failure patterns
 ```
 
 ---
@@ -201,4 +192,3 @@ Full Navy + project terminology: [`directives/Gemini.md`](directives/Gemini.md) 
 
 ---
 
-*Governed by: My Compass Tiered Agentic Development Framework v5.0*

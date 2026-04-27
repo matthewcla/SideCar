@@ -46,9 +46,6 @@ Load these directives in sequence before any execution begins. Each governs a sp
 | 4 | **UI-UX.md** | Covenant design system, component specs, accessibility, NMCI rendering | `directives/UI-UX.md` |
 | 5 | **UX-PATTERNS.md** | Interaction patterns, feature specs, Quick-Flags, Baseball Card, tooltips | `directives/UX-PATTERNS.md` |
 | 6 | **INTEGRATIONS.md** | Adapter layer contracts, data source interfaces, offline behavior | `directives/INTEGRATIONS.md` |
-| 7 | **AUDIT.md** | Verification protocol, halt conditions, structured verdict format | `directives/AUDIT.md` |
-| 8 | **TESTING.md** | Quality gate thresholds, four-dimension scoring, remediation protocol | `directives/TESTING.md` |
-| 9 | **ONBOARDING.md** | New developer protocol, first-session rules, role authority map | `directives/ONBOARDING.md` |
 
 **If any directive fails to load, halt. Do not proceed with partial governance.**
 
@@ -198,24 +195,6 @@ The five PRD tier colors (Gray → Green → Yellow → Red → Purple) are used
 
 ---
 
-## SECTION 6 — GOVERNED DEVELOPMENT CYCLE
-
-Every session follows this 10-step sequence. No step may be skipped.
-
-| Step | Action | Owner | Gate |
-|:---:|---|---|---|
-| 1 | Directive Library loads. Confirm `Gemini.md` + all directives loaded. | Orchestrator | Load confirmed |
-| 2 | Confirm module scope and task boundary with Tier 1. | Orchestrator + Tier 1 | Scope approved in writing |
-| 3 | Generate Execution Script referencing all applicable directives. | Orchestrator | Script references all directives |
-| 4 | Execute within assigned module boundary per Execution Script. | Module Agent (Tier 3) | No out-of-scope file writes |
-| 5 | Log all file writes. Confirm no out-of-scope modifications. | Module Agent (Tier 3) | Boundary confirmation produced |
-| 6 | Return structured output and boundary confirmation. | Module Agent (Tier 3) | Output matches Execution Script contract |
-| 7 | QA gate: quality scoring per TESTING.md. | QA Agent | All dimensions ≥ 7/10 |
-| 8 | Human-on-the-Loop review. Read QA report, verify, approve or return. | Human (Tier 1) | Human approval documented |
-| 9 | Independent Verifier review — AUDIT.md only, no execution context. | Verifier | Pass or halt verdict |
-| 10 | Tier 1 merge authorization. CHANGELOG updated. Session closed. | Orchestrator + Tier 1 | Tier 1 explicit approval |
-
----
 
 ## SECTION 7 — EXECUTION SCRIPT (PRAGMATIC MODEL)
 
@@ -319,34 +298,11 @@ Every session produces a log entry in `sessions/`. Append-only.
 - **Execution Script:** [Reference or inline]
 - **Files Modified:** [List with line counts]
 - **Boundary Confirmation:** PASS | HALT
-- **QA Score:** Clarity: X/10 | Specificity: X/10 | Chain-Readiness: X/10 | Output Definition: X/10
-- **Verifier Verdict:** PASS | HALT
-- **Tier 1 Decision:** MERGE | RETURN | DEFER
 - **Notes:** [Any observations, decisions, or escalations]
 ```
 
 ---
 
-## SECTION 10 — QUALITY GATE (FOUR DIMENSIONS)
-
-Every output is scored against these four dimensions. Pass threshold is **7 in every dimension simultaneously.**
-
-| Dimension | What It Measures | Threshold |
-|---|---|:---:|
-| **Clarity** | Is the output unambiguous? Can the next agent consume it without interpretation? | ≥ 7/10 |
-| **Specificity** | Are all referenced files, functions, and contracts explicitly named? | ≥ 7/10 |
-| **Chain-Readiness** | Is the output formatted for downstream consumption without transformation? | ≥ 7/10 |
-| **Output Definition** | Does the output match the contract defined in the Execution Script? | ≥ 7/10 |
-
-**Scoring:**
-- **1–3:** Non-compliant. Cannot advance under any condition.
-- **4–6:** Requires directed remediation before re-evaluation. One cycle permitted.
-- **7–9:** Passes the gate. Score-specific notes logged.
-- **10:** Exemplary. Stored in `lessons/exemplars.md` as reference.
-
-A second remediation failure escalates to Tier 1 for task redefinition.
-
----
 
 ## SECTION 13 — PRD COMPUTATION (REFERENCE IMPLEMENTATION)
 
@@ -461,19 +417,6 @@ Phase 1B: These functions call Microsoft Graph API through GCC High.
 
 ---
 
-## SECTION 16 — LESSONS LEARNED REPOSITORY
-
-Every session — clean completion or halt — generates a log entry.
-
-| Content | Stored In | Feeds Back Into |
-|---|---|---|
-| Every halt event: trigger, directive violated, resolution | `lessons/halts.md` | Tier 1 directive amendments |
-| Recurring QA failure patterns by dimension | `lessons/patterns.md` | TESTING.md threshold review |
-| High-scoring session outputs (≥9 in all dimensions) | `lessons/exemplars.md` | Raised baseline for passing standard |
-
-The system does not repeat errors it has already classified. It encodes the resolution and moves the standard forward.
-
----
 
 ## SECTION 17 — FINAL QUALITY CHECKLIST
 
