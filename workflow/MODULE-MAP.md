@@ -8,8 +8,8 @@
 
 ## MOD-LAND: Landing / Intelligence Bar
 
-- **Files:** `sidecar-app/src/Landing/Landing.tsx`, `sidecar-app/src/Landing/Landing.css`
-- **Write:** `sidecar-app/src/Landing/*`
+- **Files:** `sidecar-app/src/features/Landing/Landing.tsx`, `sidecar-app/src/features/Landing/Landing.css`
+- **Write:** `sidecar-app/src/features/Landing/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
 - **Focus Directives:** UI-UX.md
 - **All Directives Loaded:** Yes (as background guardrails)
@@ -20,8 +20,8 @@
 
 ## MOD-WORK: Detailer Workspace (Primary Work Surface)
 
-- **Files:** `sidecar-app/src/Workspace/Workspace.tsx`, `sidecar-app/src/Workspace/Workspace.css`
-- **Write:** `sidecar-app/src/Workspace/*`
+- **Files:** `sidecar-app/src/features/Workspace/Workspace.tsx`, `sidecar-app/src/features/Workspace/Workspace.css`
+- **Write:** `sidecar-app/src/features/Workspace/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
 - **Focus Directives:** UI-UX.md, UX-PATTERNS.md, INTEGRATIONS.md
 - **All Directives Loaded:** Yes (as background guardrails)
@@ -39,8 +39,8 @@
 
 ## MOD-MEMBER: Sailor Record View (Personnel)
 
-- **Files:** `sidecar-app/src/Personnel/Personnel.tsx`, `sidecar-app/src/Personnel/Personnel.css`
-- **Write:** `sidecar-app/src/Personnel/*`
+- **Files:** `sidecar-app/src/features/Personnel/Personnel.tsx`, `sidecar-app/src/features/Personnel/Personnel.css`
+- **Write:** `sidecar-app/src/features/Personnel/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
 - **Focus Directives:** UI-UX.md, INTEGRATIONS.md, SECURITY.md
 - **All Directives Loaded:** Yes (as background guardrails)
@@ -51,8 +51,8 @@
 
 ## MOD-CMD: Command View
 
-- **Files:** `sidecar-app/src/Command/Command.tsx`, `sidecar-app/src/Command/Command.css`
-- **Write:** `sidecar-app/src/Command/*`
+- **Files:** `sidecar-app/src/features/Command/Command.tsx`, `sidecar-app/src/features/Command/Command.css`
+- **Write:** `sidecar-app/src/features/Command/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
 - **Focus Directives:** UI-UX.md, INTEGRATIONS.md
 - **All Directives Loaded:** Yes (as background guardrails)
@@ -63,8 +63,8 @@
 
 ## MOD-ANLYT: Analytics Dashboard
 
-- **Files:** `sidecar-app/src/Analytics/Analytics.tsx`, `sidecar-app/src/Analytics/Analytics.css`
-- **Write:** `sidecar-app/src/Analytics/*`
+- **Files:** `sidecar-app/src/features/Analytics/Analytics.tsx`, `sidecar-app/src/features/Analytics/Analytics.css`
+- **Write:** `sidecar-app/src/features/Analytics/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
 - **Focus Directives:** UI-UX.md, INTEGRATIONS.md
 - **All Directives Loaded:** Yes (as background guardrails)
@@ -75,8 +75,8 @@
 
 ## MOD-SEARCH: Advanced Search
 
-- **Files:** `sidecar-app/src/AdvancedSearch/AdvancedSearch.tsx`, `sidecar-app/src/AdvancedSearch/AdvancedSearch.css`
-- **Write:** `sidecar-app/src/AdvancedSearch/*`
+- **Files:** `sidecar-app/src/features/AdvancedSearch/AdvancedSearch.tsx`, `sidecar-app/src/features/AdvancedSearch/AdvancedSearch.css`
+- **Write:** `sidecar-app/src/features/AdvancedSearch/*`
 - **Read:** `sidecar-app/src/index.css`, `sidecar-app/src/services/*`, `sidecar-app/src/models/*`
 - **Focus Directives:** UI-UX.md, INTEGRATIONS.md
 - **All Directives Loaded:** Yes (as background guardrails)
@@ -135,7 +135,7 @@
 
 ## MOD-DIR: Directive Library (Tier 1 Only)
 
-- **Files:** `directives/*`, `WHITE_PAPER.md`
+- **Files:** `docs/*`
 - **Write:** Tier 1 authorization required
 - **Read:** All (loaded at every session start)
 - **Focus Directives:** N/A — these ARE the directives

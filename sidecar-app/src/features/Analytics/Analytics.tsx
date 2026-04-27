@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { SideCarAdapter } from '../services/SideCarAdapter';
-import { computePRDTier, daysSinceContact } from '../services/PrdEngine';
-import type { ISailor, IOrderStatus } from '../models/ISailor';
-import { PIPELINE_STAGES } from '../services/SyntheticData';
-import Topbar from '../components/Topbar';
+import { SideCarAdapter } from '../../services/SideCarAdapter';
+import { computePRDTier, daysSinceContact } from '../../services/PrdEngine';
+import type { ISailor, IOrderStatus } from '../../models/ISailor';
+import { PIPELINE_STAGES } from '../../services/SyntheticData';
+import Topbar from '../../components/Topbar';
 import './Analytics.css';
 
 export default function Analytics() {

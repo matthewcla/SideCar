@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SideCarAdapter } from '../services/SideCarAdapter';
-import { computePRDTier, daysSinceContact } from '../services/PrdEngine';
-import { PIPELINE_STAGES } from '../services/SyntheticData';
-import type { ISailor, INotification, IOrderStatus, ICommEntry, IAppointment, IPrdResult } from '../models/ISailor';
-import Topbar from '../components/Topbar';
-import PrepCard from '../components/PrepCard';
+import { SideCarAdapter } from '../../services/SideCarAdapter';
+import { computePRDTier, daysSinceContact } from '../../services/PrdEngine';
+import { PIPELINE_STAGES } from '../../services/SyntheticData';
+import type { ISailor, INotification, IOrderStatus, ICommEntry, IAppointment, IPrdResult } from '../../models/ISailor';
+import Topbar from '../../components/Topbar';
+import PrepCard from '../../components/PrepCard';
 
 type Tab = 'roster' | 'calendar' | 'actions';
 

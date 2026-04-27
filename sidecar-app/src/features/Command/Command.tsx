@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { SideCarAdapter } from '../services/SideCarAdapter';
-import { computePRDTier } from '../services/PrdEngine';
-import type { ISailor, ICommand as ICmd, IBillet } from '../models/ISailor';
-import Topbar from '../components/Topbar';
+import { SideCarAdapter } from '../../services/SideCarAdapter';
+import { computePRDTier } from '../../services/PrdEngine';
+import type { ISailor, ICommand as ICmd, IBillet } from '../../models/ISailor';
+import Topbar from '../../components/Topbar';
 import './Command.css';
 
 export default function Command() {

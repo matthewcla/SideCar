@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SideCarAdapter } from '../services/SideCarAdapter';
-import { computePRDTier, daysSinceContact } from '../services/PrdEngine';
-import type { ISailor } from '../models/ISailor';
+import { SideCarAdapter } from '../../services/SideCarAdapter';
+import { computePRDTier, daysSinceContact } from '../../services/PrdEngine';
+import type { ISailor } from '../../models/ISailor';
 
 export default function Landing() {
   const [query, setQuery] = useState('');

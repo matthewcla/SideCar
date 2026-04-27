@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { SideCarAdapter } from '../services/SideCarAdapter';
-import { computePRDTier, daysSinceContact } from '../services/PrdEngine';
-import { PIPELINE_STAGES } from '../services/SyntheticData';
+import { SideCarAdapter } from '../../services/SideCarAdapter';
+import { computePRDTier, daysSinceContact } from '../../services/PrdEngine';
+import { PIPELINE_STAGES } from '../../services/SyntheticData';
 import type {
   ISailor, ICommEntry, IOrderStatus, IFormResponse,
   IBilletHistory, IQualification, IEducation, IPersonalInfo, ICompassInsights
-} from '../models/ISailor';
-import Topbar from '../components/Topbar';
+} from '../../models/ISailor';
+import Topbar from '../../components/Topbar';
 
 /* ── Fallback synthetic data for new fields ────────────────── */
 const FALLBACK_BILLET_HISTORY: IBilletHistory[] = [

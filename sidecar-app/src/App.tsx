@@ -1,11 +1,11 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import Landing from './Landing/Landing';
-import Workspace from './Workspace/Workspace';
-import Personnel from './Personnel/Personnel';
-import Command from './Command/Command';
-import Analytics from './Analytics/Analytics';
-import AdvancedSearch from './AdvancedSearch/AdvancedSearch';
+import Landing from './features/Landing/Landing';
+import Workspace from './features/Workspace/Workspace';
+import Personnel from './features/Personnel/Personnel';
+import Command from './features/Command/Command';
+import Analytics from './features/Analytics/Analytics';
+import AdvancedSearch from './features/AdvancedSearch/AdvancedSearch';
 
 function AnimatedRoutes() {
   const location = useLocation();

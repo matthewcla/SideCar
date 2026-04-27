@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { SideCarAdapter } from '../services/SideCarAdapter';
-import type { ICondition } from '../models/ISailor';
+import { SideCarAdapter } from '../../services/SideCarAdapter';
+import type { ICondition } from '../../models/ISailor';
 
 type SourceType = 'sailors' | 'billets' | 'commands';
 
