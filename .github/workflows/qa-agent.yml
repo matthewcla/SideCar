@@ -1,0 +1,415 @@
+name: SideCar QA Agent
+
+on:
+  pull_request:
+    branches: [qa-staging, main]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  qa-gate:
+    name: QA Constraint & Boundary Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # ═══════════════════════════════════════════════
+      # PHASE 0: BRANCH VALIDATION — Is this PR from an authorized branch?
+      # ═══════════════════════════════════════════════
+      - name: Validate source branch authorization
+        id: branch_check
+        run: |
+          SOURCE="${{ github.head_ref }}"
+          TARGET="${{ github.base_ref }}"
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          BRANCH_OK=true
+          BRANCH_MSG=""
+
+          # PRs to qa-staging must come from dev-1 or dev-2
+          if [ "$TARGET" = "qa-staging" ]; then
+            if [ "$SOURCE" != "dev-1" ] && [ "$SOURCE" != "dev-2" ]; then
+              BRANCH_OK=false
+              BRANCH_MSG="REJECTED: PR to qa-staging must come from \`dev-1\` or \`dev-2\`. Source branch \`$SOURCE\` is not authorized."
+            fi
+          fi
+
+          # PRs to main must come from qa-staging
+          if [ "$TARGET" = "main" ]; then
+            if [ "$SOURCE" != "qa-staging" ]; then
+              BRANCH_OK=false
+              BRANCH_MSG="REJECTED: PR to main must come from \`qa-staging\` only. Source branch \`$SOURCE\` is not authorized."
+            fi
+          fi
+
+          # Validate author is assigned to source branch
+          if [ "$BRANCH_OK" = true ] && [ -f "workflow/BRANCH-ASSIGNMENTS.json" ]; then
+            ASSIGNED_DEVS=$(grep -A 5 "\"$SOURCE\"" workflow/BRANCH-ASSIGNMENTS.json | grep "developers" | sed 's/.*\[//;s/\].*//;s/"//g;s/,/ /g' || echo "")
+            if [ -n "$ASSIGNED_DEVS" ] && ! echo "$ASSIGNED_DEVS" | grep -q "placeholder"; then
+              if ! echo "$ASSIGNED_DEVS" | grep -qw "$AUTHOR"; then
+                BRANCH_OK=false
+                BRANCH_MSG="REJECTED: @$AUTHOR is not assigned to branch \`$SOURCE\`. Authorized: $ASSIGNED_DEVS. See \`workflow/BRANCH-ASSIGNMENTS.md\`."
+              fi
+            fi
+          fi
+
+          echo "BRANCH_OK=$BRANCH_OK" >> "$GITHUB_OUTPUT"
+          echo "BRANCH_MSG=$BRANCH_MSG" >> "$GITHUB_OUTPUT"
+
+          if [ "$BRANCH_OK" = true ]; then
+            echo "Branch validation passed: $SOURCE → $TARGET by @$AUTHOR"
+          else
+            echo "Branch validation FAILED: $BRANCH_MSG"
+          fi
+
+      # ═══════════════════════════════════════════════
+      # PHASE 1: MERGE SAFETY — Can this PR merge cleanly?
+      # ═══════════════════════════════════════════════
+      - name: Check merge compatibility with target branch
+        id: merge_check
+        run: |
+          TARGET="${{ github.base_ref }}"
+          SOURCE="${{ github.head_ref }}"
+          MERGE_REPORT=""
+          MERGE_OK=true
+
+          echo "Checking if $SOURCE can merge cleanly into $TARGET..."
+
+          # Attempt a trial merge (dry run)
+          git config user.email "qa-agent@sidecar.dev"
+          git config user.name "QA Agent"
+
+          git checkout "origin/$TARGET" 2>/dev/null
+          if git merge --no-commit --no-ff "origin/$SOURCE" 2>/dev/null; then
+            MERGE_REPORT="- ✅ **Merge Check** No conflicts with \`$TARGET\`\n"
+            git merge --abort 2>/dev/null || true
+          else
+            CONFLICTING=$(git diff --name-only --diff-filter=U 2>/dev/null || true)
+            MERGE_REPORT="### MERGE CONFLICT: Cannot merge cleanly into \`$TARGET\`\n"
+            MERGE_REPORT="$MERGE_REPORT\nConflicting files:\n\`\`\`\n$CONFLICTING\n\`\`\`\n"
+            MERGE_REPORT="${MERGE_REPORT}Developer must rebase or resolve conflicts before merge.\n\n"
+            MERGE_OK=false
+            git merge --abort 2>/dev/null || true
+          fi
+
+          # Switch back to PR branch for remaining checks
+          git checkout "origin/$SOURCE" 2>/dev/null
+
+          echo "MERGE_REPORT<<ENDMERGE" >> "$GITHUB_OUTPUT"
+          echo -e "$MERGE_REPORT" >> "$GITHUB_OUTPUT"
+          echo "ENDMERGE" >> "$GITHUB_OUTPUT"
+          echo "MERGE_OK=$MERGE_OK" >> "$GITHUB_OUTPUT"
+
+      # ═══════════════════════════════════════════════
+      # PHASE 2: DIFF ANALYSIS — What changed vs target?
+      # ═══════════════════════════════════════════════
+      - name: Analyze changes against target branch
+        id: diff_check
+        run: |
+          TARGET="${{ github.base_ref }}"
+          DIFF_REPORT=""
+          DIFF_OK=true
+
+          # Get list of files changed in this PR vs target
+          CHANGED_FILES=$(git diff --name-only "origin/$TARGET"...HEAD 2>/dev/null || true)
+
+          if [ -z "$CHANGED_FILES" ]; then
+            DIFF_REPORT="- ⚠️ **Diff** No file changes detected against \`$TARGET\`\n"
+          else
+            FILE_COUNT=$(echo "$CHANGED_FILES" | wc -l | tr -d ' ')
+            DIFF_REPORT="- 📋 **Files changed vs \`$TARGET\`:** $FILE_COUNT files\n"
+
+            # Check if shared files (index.css, SideCarAdapter) are modified
+            SHARED_MODIFIED=""
+            if echo "$CHANGED_FILES" | grep -q "sidecar-app/src/index.css"; then
+              SHARED_MODIFIED="$SHARED_MODIFIED  - \`sidecar-app/src/index.css\` (Covenant Design System)\n"
+            fi
+            if echo "$CHANGED_FILES" | grep -q "sidecar-app/src/services/SideCarAdapter.ts"; then
+              SHARED_MODIFIED="$SHARED_MODIFIED  - \`sidecar-app/src/services/SideCarAdapter.ts\` (Shared Logic + Adapter)\n"
+            fi
+
+            if [ -n "$SHARED_MODIFIED" ]; then
+              DIFF_REPORT="$DIFF_REPORT- ⚠️ **Shared files modified** (requires Tier 1 multi-module authorization):\n$SHARED_MODIFIED"
+            fi
+
+            # Check if directives are modified
+            DIRECTIVE_MODIFIED=$(echo "$CHANGED_FILES" | grep "^directives/" || true)
+            if [ -n "$DIRECTIVE_MODIFIED" ]; then
+              DIFF_REPORT="$DIFF_REPORT- ⚠️ **Directive files modified** (requires Tier 1 authorization):\n"
+              for D in $DIRECTIVE_MODIFIED; do
+                DIFF_REPORT="$DIFF_REPORT  - \`$D\`\n"
+              done
+            fi
+
+            # Module boundary check — count how many modules this PR touches
+            MODULES=""
+            echo "$CHANGED_FILES" | grep -q "sidecar-app/src/Landing/" && MODULES="$MODULES MOD-LAND"
+            echo "$CHANGED_FILES" | grep -q "sidecar-app/src/Workspace/" && MODULES="$MODULES MOD-DET"
+            echo "$CHANGED_FILES" | grep -q "sidecar-app/src/Personnel/" && MODULES="$MODULES MOD-PLAC"
+            echo "$CHANGED_FILES" | grep -q "sidecar-app/src/Analytics/" && MODULES="$MODULES MOD-ANLYT"
+            echo "$CHANGED_FILES" | grep -q "sidecar-app/src/index.css" && MODULES="$MODULES MOD-CSS"
+            echo "$CHANGED_FILES" | grep -q "sidecar-app/src/services/" && MODULES="$MODULES MOD-SVC"
+
+            MOD_COUNT=$(echo "$MODULES" | wc -w | tr -d ' ')
+            if [ "$MOD_COUNT" -gt 1 ]; then
+              DIFF_REPORT="$DIFF_REPORT- ⚠️ **Cross-module PR** — touches $MOD_COUNT modules:$MODULES\n"
+              DIFF_REPORT="$DIFF_REPORT  Requires explicit Tier 1 multi-module authorization.\n"
+            elif [ "$MOD_COUNT" -eq 1 ]; then
+              DIFF_REPORT="$DIFF_REPORT- ✅ **Single module:**$MODULES\n"
+            fi
+          fi
+
+          echo "DIFF_REPORT<<ENDDIFF" >> "$GITHUB_OUTPUT"
+          echo -e "$DIFF_REPORT" >> "$GITHUB_OUTPUT"
+          echo "ENDDIFF" >> "$GITHUB_OUTPUT"
+          echo "DIFF_OK=$DIFF_OK" >> "$GITHUB_OUTPUT"
+
+      # ═══════════════════════════════════════════════
+      # PHASE 3: CONSTRAINT CHECKS — Constitutional compliance
+      # ═══════════════════════════════════════════════
+      - name: Run constitutional constraint checks
+        id: qa
+        run: |
+          REPORT=""
+          PASS=true
+
+          # ─── C-02: No raw fetch() calls (must use SideCarAdapter) ───
+          FETCH_HITS=$(grep -rn 'fetch(' sidecar-app/src/**/*.tsx sidecar-app/src/**/*.ts 2>/dev/null | grep -v 'SideCarAdapter' | grep -v 'services/' | grep -v '// Phase 1B' || true)
+          if [ -n "$FETCH_HITS" ]; then
+            REPORT="$REPORT### C-02 VIOLATION: Raw fetch() calls found (use SideCarAdapter)\n\`\`\`\n$FETCH_HITS\n\`\`\`\n\n"
+            PASS=false
+          else
+            REPORT="$REPORT- ✅ **C-02** No raw fetch() calls (adapter pattern enforced)\n"
+          fi
+
+          # ─── C-01: Vite + React — import/export is expected, skip legacy check ───
+          REPORT="$REPORT- ✅ **C-01** ES modules — allowed (Vite + React build pipeline)\n"
+
+          # ─── C-11: No hardcoded hex outside :root ───
+          HEX_HITS=""
+          if [ -f sidecar-app/src/index.css ]; then
+            HEX_HITS=$(awk '/:root\s*\{/{in_root=1} /^\}/{if(in_root) in_root=0} !in_root && /#[0-9a-fA-F]{3,8}/' sidecar-app/src/index.css || true)
+          fi
+          if [ -n "$HEX_HITS" ]; then
+            REPORT="$REPORT### C-11 VIOLATION: Hardcoded hex outside :root\n\`\`\`\n$HEX_HITS\n\`\`\`\n\n"
+            PASS=false
+          else
+            REPORT="$REPORT- ✅ **C-11** No hardcoded hex values outside :root\n"
+          fi
+
+          # ─── C-04: No CSS nesting, @layer, @container ───
+          CSS_HITS=$(grep -rn '@layer\|@container' sidecar-app/src/index.css 2>/dev/null | grep -v '^\s*/\*\|^\s*\*\|^\s*C-' || true)
+          if [ -n "$CSS_HITS" ]; then
+            REPORT="$REPORT### C-04 VIOLATION: @layer or @container found\n\`\`\`\n$CSS_HITS\n\`\`\`\n\n"
+            PASS=false
+          else
+            REPORT="$REPORT- ✅ **C-04** No @layer or @container\n"
+          fi
+
+          # ─── C-03: No real PII ───
+          PII_HITS=$(grep -rni '\bSSN\b\|social security\|DODID:[0-9]' sidecar-app/src/ 2>/dev/null | grep -v 'synthetic\|9999\|Synthetic\|SYNTHETIC\|pattern\|Pattern' || true)
+          if [ -n "$PII_HITS" ]; then
+            REPORT="$REPORT### C-03 VIOLATION: Possible PII detected\n\`\`\`\n$PII_HITS\n\`\`\`\n\n"
+            PASS=false
+          else
+            REPORT="$REPORT- ✅ **C-03** No PII detected\n"
+          fi
+
+          # ─── C-07: No external CDN without fallback ───
+          CDN_HITS=$(grep -rn 'cdn\.\|cdnjs\.\|unpkg\.\|jsdelivr\.\|tailwindcss\|googleapis' sidecar-app/src/ sidecar-app/index.html 2>/dev/null | grep -v '<!--' | grep -v 'node_modules' || true)
+          if [ -n "$CDN_HITS" ]; then
+            REPORT="$REPORT### C-07 VIOLATION: External CDN dependency\n\`\`\`\n$CDN_HITS\n\`\`\`\n\n"
+            PASS=false
+          else
+            REPORT="$REPORT- ✅ **C-07** No external CDN without fallback\n"
+          fi
+
+          # ─── C-12: Typography check ───
+          FONT_HITS=$(grep -rn 'font-family' sidecar-app/src/index.css 2>/dev/null | grep -v 'var(--font-' | grep -v ':root' | grep -v '@font-face' | grep -v 'font-family:.*Bebas\|font-family:.*Libre\|font-family:.*DM Mono' || true)
+          if [ -n "$FONT_HITS" ]; then
+            REPORT="$REPORT### C-12 WARNING: Direct font-family (should use token)\n\`\`\`\n$FONT_HITS\n\`\`\`\n\n"
+          else
+            REPORT="$REPORT- ✅ **C-12** Typography uses token system\n"
+          fi
+
+          # ─── C-13: Light mode check ───
+          DARK_HITS=$(grep -rn 'prefers-color-scheme' sidecar-app/src/**/*.css sidecar-app/src/**/*.tsx sidecar-app/index.html 2>/dev/null || true)
+          if [ -n "$DARK_HITS" ]; then
+            REPORT="$REPORT### C-13 VIOLATION: prefers-color-scheme found\n\`\`\`\n$DARK_HITS\n\`\`\`\n\n"
+            PASS=false
+          else
+            REPORT="$REPORT- ✅ **C-13** No color-scheme media queries (light mode only)\n"
+          fi
+
+          # ─── File structure check ───
+          STRUCTURE_OK=true
+          for FILE in sidecar-app/src/Landing/Landing.tsx sidecar-app/src/Workspace/Workspace.tsx sidecar-app/src/Personnel/Personnel.tsx sidecar-app/src/index.css sidecar-app/src/services/SideCarAdapter.ts; do
+            if [ ! -f "$FILE" ]; then
+              REPORT="$REPORT### STRUCTURE: Missing required file: \`$FILE\`\n"
+              STRUCTURE_OK=false
+              PASS=false
+            fi
+          done
+          if [ "$STRUCTURE_OK" = true ]; then
+            REPORT="$REPORT- ✅ **Structure** All required files present\n"
+          fi
+
+          # ─── Navigation integrity — React Router routes defined ───
+          NAV_OK=true
+          # Check that the router config includes all required routes
+          ROUTER_FILE=$(find sidecar-app/src -name "App.tsx" -o -name "Router.tsx" -o -name "routes.tsx" 2>/dev/null | head -1)
+          if [ -n "$ROUTER_FILE" ]; then
+            for ROUTE in "/" "/workspace" "/personnel" "/analytics"; do
+              if ! grep -q "\"$ROUTE\"\|'$ROUTE'" "$ROUTER_FILE" 2>/dev/null; then
+                REPORT="$REPORT- ⚠️ **Navigation** Route \`$ROUTE\` not found in \`$ROUTER_FILE\`\n"
+                NAV_OK=false
+              fi
+            done
+          else
+            REPORT="$REPORT- ⚠️ **Navigation** No router file found (App.tsx / Router.tsx / routes.tsx)\n"
+            NAV_OK=false
+          fi
+          if [ "$NAV_OK" = true ]; then
+            REPORT="$REPORT- ✅ **Navigation** All React Router routes present\n"
+          fi
+
+          # ─── Token consistency — index.css :root matches what components expect ───
+          if [ -f sidecar-app/src/index.css ]; then
+            REQUIRED_TOKENS="--color-bg-void --color-bg-surface --color-gold-primary --color-text-primary --color-border-gold --font-display --font-body --font-data"
+            TOKEN_OK=true
+            for TOKEN in $REQUIRED_TOKENS; do
+              if ! grep -q "$TOKEN" sidecar-app/src/index.css; then
+                REPORT="$REPORT### TOKEN MISSING: \`$TOKEN\` not found in index.css :root\n"
+                TOKEN_OK=false
+                PASS=false
+              fi
+            done
+            if [ "$TOKEN_OK" = true ]; then
+              REPORT="$REPORT- ✅ **Token System** All required design tokens present\n"
+            fi
+          fi
+
+          echo "REPORT<<ENDOFREPORT" >> "$GITHUB_OUTPUT"
+          echo -e "$REPORT" >> "$GITHUB_OUTPUT"
+          echo "ENDOFREPORT" >> "$GITHUB_OUTPUT"
+
+          if [ "$PASS" = false ]; then
+            echo "PASS=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "PASS=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ═══════════════════════════════════════════════
+      # PHASE 4: POST REPORT
+      # ═══════════════════════════════════════════════
+      - name: Build and post QA report
+        uses: actions/github-script@v7
+        env:
+          MERGE_REPORT: ${{ steps.merge_check.outputs.MERGE_REPORT }}
+          MERGE_OK: ${{ steps.merge_check.outputs.MERGE_OK }}
+          DIFF_REPORT: ${{ steps.diff_check.outputs.DIFF_REPORT }}
+          CONSTRAINT_REPORT: ${{ steps.qa.outputs.REPORT }}
+          CONSTRAINT_PASS: ${{ steps.qa.outputs.PASS }}
+          SOURCE_BRANCH: ${{ github.head_ref }}
+          TARGET_BRANCH: ${{ github.base_ref }}
+        with:
+          script: |
+            const mergeReport = process.env.MERGE_REPORT;
+            const mergeOk = process.env.MERGE_OK;
+            const diffReport = process.env.DIFF_REPORT;
+            const constraintReport = process.env.CONSTRAINT_REPORT;
+            const constraintPass = process.env.CONSTRAINT_PASS;
+
+            const allPass = mergeOk === 'true' && constraintPass === 'true';
+
+            // Build executive summary for the reviewer
+            const prAuthor = context.payload.pull_request.user.login;
+            const prTitle = context.payload.pull_request.title;
+            const source = process.env.SOURCE_BRANCH;
+            const target = process.env.TARGET_BRANCH;
+
+            // Count passes and fails from constraint report
+            const passCount = (constraintReport.match(/✅/g) || []).length;
+            const failCount = (constraintReport.match(/VIOLATION/g) || []).length;
+            const warnCount = (constraintReport.match(/⚠️|WARNING/g) || []).length;
+
+            // Extract module from diff report
+            const moduleMatch = diffReport.match(/Single module:\s*(MOD-\w+)/);
+            const crossModule = diffReport.includes('Cross-module');
+            const moduleName = moduleMatch ? moduleMatch[1] : (crossModule ? 'MULTI-MODULE' : 'unknown');
+
+            // Extract file count
+            const fileMatch = diffReport.match(/(\d+) files/);
+            const fileCount = fileMatch ? fileMatch[1] : '?';
+
+            const mergeStatus = mergeOk === 'true' ? 'clean' : 'HAS CONFLICTS';
+
+            let summary = '> **Quick Brief for Reviewer:**\n';
+            summary += '> **' + prAuthor + '** is merging `' + source + '` → `' + target + '`\n';
+            summary += '> **' + fileCount + ' files changed** in **' + moduleName + '** | Merge: **' + mergeStatus + '**\n';
+            summary += '> **' + passCount + ' passed** · **' + failCount + ' failed** · **' + warnCount + ' warnings**\n';
+
+            if (allPass) {
+              summary += '>\n> 🟢 **All clear — safe to merge.**\n';
+            } else {
+              summary += '>\n> 🔴 **Issues found — scroll down for details.**\n';
+            }
+
+            const verdict = allPass
+              ? '## ✅ QA GATE: PASS'
+              : '## ❌ QA GATE: FAIL';
+
+            const report = [
+              '# SideCar QA Agent Report\n',
+              summary + '\n',
+              verdict + '\n',
+              '---\n',
+              '## Phase 1: Merge Safety\n',
+              mergeReport,
+              '\n## Phase 2: Change Analysis\n',
+              diffReport,
+              '\n## Phase 3: Constitutional Constraints\n',
+              constraintReport,
+              '\n---',
+              '\n*Automated QA — SideCar Governed Development Cycle Step 7*',
+              '\n*Target: `' + target + '` | Source: `' + source + '` | Author: @' + prAuthor + '*',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const botComment = comments.find(c => c.body.includes('SideCar QA Agent Report'));
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: report,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: report,
+              });
+            }
+
+      - name: Fail if branch validation failed
+        if: steps.branch_check.outputs.BRANCH_OK == 'false'
+        run: |
+          echo "Branch validation failed: ${{ steps.branch_check.outputs.BRANCH_MSG }}"
+          exit 1
+
+      - name: Fail if any check failed
+        if: steps.qa.outputs.PASS == 'false' || steps.merge_check.outputs.MERGE_OK == 'false'
+        run: |
+          echo "QA gate failed — see PR comment for details"
+          exit 1
