@@ -1,7 +1,7 @@
 import type {
   ISailor, ICommEntry, IBillet, ICommand, IFormStatus,
   IFormResponse, IAppointment, ITemplate, IOrderStatus,
-  IPipelineStage
+  IPipelineStage, IQualification
 } from '../models/ISailor';
 import { today, formatDate } from './PrdEngine';
 
@@ -10,19 +10,159 @@ import { today, formatDate } from './PrdEngine';
    12 phonetic-alphabet Sailors across IT, CTN, YN rates.
    PRD values distributed across all 5 tiers.
    ------------------------------------------------------- */
+function generateSwoOfficers(count: number): ISailor[] {
+  const officers: ISailor[] = [];
+  const firstNames = ['James', 'John', 'Robert', 'Michael', 'William', 'David', 'Richard', 'Joseph', 'Thomas', 'Charles', 'Mary', 'Patricia', 'Jennifer', 'Linda', 'Elizabeth', 'Barbara', 'Susan', 'Jessica', 'Sarah', 'Karen'];
+  const lastNames = ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'];
+
+  const SHIPS = [
+    { name: 'USS NIMITZ (CVN-68)', uic: 'N00068' },
+    { name: 'USS ARLEIGH BURKE (DDG-51)', uic: 'N00051' },
+    { name: 'USS CHANCELLORSVILLE (CG-62)', uic: 'N00062' },
+    { name: 'USS DECATUR (DDG-73)', uic: 'N00073' },
+    { name: 'USS MOMSEN (DDG-92)', uic: 'N00092' },
+    { name: 'USS AMERICA (LHA-6)', uic: 'N00006' }
+  ];
+
+  const SHORE_CMDS = [
+    { name: 'COMNAVSURFPAC', uic: 'N00011' },
+    { name: 'COMNAVSURFLANT', uic: 'N00012' },
+    { name: 'OPNAV N96', uic: 'N00013' },
+    { name: 'NPC PERS-41', uic: 'N00014' },
+    { name: 'SWSC NEWPORT', uic: 'N00015' }
+  ];
+
+  const AQD_LA9 = { year: '2020', code: 'LA9', title: 'Surface Warfare Officer', dateEarned: '2020-05-10' };
+  const AQD_LB2 = { year: '2019', code: 'LB2', title: 'Officer of the Deck (Underway)', dateEarned: '2019-11-20' };
+  const AQD_LC3 = { year: '2021', code: 'LC3', title: 'Gas Turbine EOOW', dateEarned: '2021-03-15' };
+  const AQD_LF7 = { year: '2022', code: 'LF7', title: 'Tactical Action Officer', dateEarned: '2022-08-01' };
+  const AQD_LF9 = { year: '2021', code: 'LF9', title: 'Surface Combat Experience', dateEarned: '2021-09-10' };
+  const AQD_LA5 = { year: '2023', code: 'LA5', title: 'SWO Department Head', dateEarned: '2023-01-15' };
+  const AQD_LN7 = { year: '2024', code: 'LN7', title: 'Command Eligible', dateEarned: '2024-06-01' };
+
+  for (let i = 0; i < count; i++) {
+    const id = (9999000100 + i).toString();
+    const is1160 = Math.random() < 0.2; // 20% 1160
+    const designator = is1160 ? '1160' : '1110';
+    
+    // Determine rank
+    let payGrade = '';
+    if (is1160) {
+      payGrade = Math.random() < 0.7 ? 'O-1' : 'O-2'; // ENS or LTJG
+    } else {
+      const r = Math.random();
+      if (r < 0.1) payGrade = 'O-2'; // LTJG
+      else if (r < 0.5) payGrade = 'O-3'; // LT
+      else if (r < 0.8) payGrade = 'O-4'; // LCDR
+      else if (r < 0.95) payGrade = 'O-5'; // CDR
+      else payGrade = 'O-6'; // CAPT
+    }
+
+    // Determine Sea/Shore
+    let isOnShip = true;
+    if (designator === '1110') {
+      if (payGrade === 'O-2') isOnShip = true;
+      else if (payGrade === 'O-3') isOnShip = Math.random() < 0.3; // mostly shore
+      else isOnShip = Math.random() < 0.4; // some ship, many shore
+    }
+
+    const command = isOnShip ? SHIPS[Math.floor(Math.random() * SHIPS.length)] : SHORE_CMDS[Math.floor(Math.random() * SHORE_CMDS.length)];
+    
+    // AQDs
+    const quals: IQualification[] = [];
+    if (is1160) {
+      if (Math.random() < 0.3) quals.push(AQD_LB2);
+      if (Math.random() < 0.2) quals.push(AQD_LF9);
+    } else {
+      quals.push(AQD_LA9, AQD_LB2);
+      if (Math.random() < 0.3) quals.push(AQD_LC3);
+      if (Math.random() < 0.4) quals.push(AQD_LF7);
+      if (Math.random() < 0.3) quals.push(AQD_LF9);
+      if (payGrade === 'O-3' || payGrade === 'O-4') {
+        if (Math.random() < 0.5) quals.push(AQD_LA5);
+      }
+      if (payGrade === 'O-4' || payGrade === 'O-5') {
+        if (Math.random() < 0.3) quals.push(AQD_LN7);
+      }
+    }
+    
+    // Synthetic flags
+    const rand = Math.random();
+    let s_int = undefined;
+    let acc = undefined;
+    let isPregnant = false;
+    let isMarriedToActiveDuty = false;
+    let hasDependentsInEFMP = false;
+    let promotionSelectedButNotAdvanced = false;
+    let humsStatus: ISailor['humsStatus'] = null;
+    let limdu = 'None active';
+    
+    if (rand < 0.05) { s_int = '8'; promotionSelectedButNotAdvanced = false; } // Legal Hold
+    else if (rand < 0.10) { s_int = '8'; promotionSelectedButNotAdvanced = true; } // Promotion Hold
+    else if (rand < 0.15) { s_int = '4'; isMarriedToActiveDuty = true; } // Colocation
+    else if (rand < 0.20) { s_int = '6'; hasDependentsInEFMP = true; } // EFMP
+    else if (rand < 0.25) { acc = '100'; } // PRD Requires Adjustment
+    else if (rand < 0.30) { limdu = 'Active'; } // LIMDU
+    else if (rand < 0.35) { isPregnant = true; } // OPSDEF
+    else if (rand < 0.40) { humsStatus = 'pending'; } // HUMS
+
+    const generateSSN = () => {
+      const p1 = String(Math.floor(Math.random() * 900) + 100);
+      const p2 = String(Math.floor(Math.random() * 90) + 10);
+      const p3 = String(Math.floor(Math.random() * 9000) + 1000);
+      return `${p1}-${p2}-${p3}`;
+    };
+
+    officers.push({
+      id,
+      ssn: generateSSN(),
+      lastName: lastNames[Math.floor(Math.random() * lastNames.length)],
+      firstName: firstNames[Math.floor(Math.random() * firstNames.length)],
+      rate: is1160 ? 'SWO(T)' : 'SWO',
+      payGrade,
+      designator,
+      prd: `2026-${Math.floor(Math.random() * 12 + 1).toString().padStart(2, '0')}-15`,
+      eaos: `2030-${Math.floor(Math.random() * 12 + 1).toString().padStart(2, '0')}-01`,
+      command: command.name,
+      uic: command.uic,
+      billet: isOnShip ? (payGrade === 'O-1' || payGrade === 'O-2' ? 'Division Officer' : payGrade === 'O-3' ? 'Department Head' : payGrade === 'O-4' ? 'Executive Officer' : 'Commanding Officer') : 'Action Officer',
+      lastContact: `2026-0${Math.floor(Math.random() * 3 + 1)}-10`,
+      detailer: 'PERS-41',
+      qualifications: quals,
+      s_int,
+      acc,
+      isPregnant,
+      isMarriedToActiveDuty,
+      hasDependentsInEFMP,
+      promotionSelectedButNotAdvanced,
+      humsStatus,
+      personalInfo: {
+        family: isMarriedToActiveDuty ? 'Married (Dual Military)' : (hasDependentsInEFMP ? 'Married (EFMP Cat 3)' : 'Single'),
+        dutyStation: command.name,
+        contactInfo: '555-0100',
+        efmp: hasDependentsInEFMP ? 'Cat 3' : 'Not enrolled',
+        limdu,
+        pfa: 'Passed'
+      }
+    });
+  }
+  return officers;
+}
+
 export const SYNTHETIC_SAILORS: ISailor[] = [
-  { id: '9999000001', lastName: 'Alpha',   firstName: 'Aaron',  rate: 'IT',  payGrade: 'E5', prd: '2026-02-15', eaos: '2027-06-30', command: 'USS EXAMPLE (CVN-00)',      uic: 'XXXXX', billet: 'LAN Admin',            lastContact: '2026-01-10', detailer: 'PERS-401' },
-  { id: '9999000002', lastName: 'Bravo',   firstName: 'Beth',   rate: 'IT',  payGrade: 'E6', prd: '2026-05-20', eaos: '2028-09-15', command: 'NAVSTA TESTPORT',           uic: 'XXXX1', billet: 'ISSM',                 lastContact: '2026-03-01', detailer: 'PERS-401' },
-  { id: '9999000003', lastName: 'Charlie', firstName: 'Carlos', rate: 'CTN', payGrade: 'E5', prd: '2026-08-10', eaos: '2027-12-01', command: 'NIOC DEMO',                 uic: 'XXXX2', billet: 'CND Watch Officer',    lastContact: '2026-02-20', detailer: 'PERS-401' },
-  { id: '9999000004', lastName: 'Delta',   firstName: 'Diana',  rate: 'YN',  payGrade: 'E4', prd: '2026-12-01', eaos: '2028-03-15', command: 'COMNAVPERSCOM HQ',           uic: 'XXXX3', billet: 'Admin Clerk',           lastContact: '2026-03-20', detailer: 'PERS-401' },
-  { id: '9999000005', lastName: 'Echo',    firstName: 'Edwin',  rate: 'IT',  payGrade: 'E7', prd: '2027-03-15', eaos: '2030-01-01', command: 'USS PLACEHOLDER (DDG-00)',   uic: 'XXXX4', billet: 'DIVO IT',              lastContact: '2026-02-01', detailer: 'PERS-401' },
-  { id: '9999000006', lastName: 'Foxtrot', firstName: 'Faye',   rate: 'CTN', payGrade: 'E6', prd: '2026-04-01', eaos: '2027-08-20', command: 'NIOC DEMO',                 uic: 'XXXX2', billet: 'Senior CND Analyst',   lastContact: '2026-03-15', detailer: 'PERS-401' },
-  { id: '9999000007', lastName: 'Golf',    firstName: 'George', rate: 'IT',  payGrade: 'E4', prd: '2026-01-15', eaos: '2027-04-10', command: 'NAVSTA TESTPORT',           uic: 'XXXX1', billet: 'Help Desk Tech',       lastContact: '2025-12-20', detailer: 'PERS-401' },
-  { id: '9999000008', lastName: 'Hotel',   firstName: 'Helen',  rate: 'YN',  payGrade: 'E5', prd: '2026-06-30', eaos: '2028-11-30', command: 'COMNAVPERSCOM HQ',           uic: 'XXXX3', billet: 'Personnel Specialist', lastContact: '2026-03-10', detailer: 'PERS-401' },
-  { id: '9999000009', lastName: 'India',   firstName: 'Ivan',   rate: 'CTN', payGrade: 'E7', prd: '2026-09-15', eaos: '2029-06-01', command: 'USS EXAMPLE (CVN-00)',      uic: 'XXXXX', billet: 'Crypto Board Chief',   lastContact: '2026-01-25', detailer: 'PERS-401' },
-  { id: '9999000010', lastName: 'Juliet',  firstName: 'Jane',   rate: 'IT',  payGrade: 'E5', prd: '2026-03-10', eaos: '2027-09-01', command: 'USS PLACEHOLDER (DDG-00)',   uic: 'XXXX4', billet: 'Systems Admin',        lastContact: '2026-02-28', detailer: 'PERS-401' },
-  { id: '9999000011', lastName: 'Kilo',    firstName: 'Kevin',  rate: 'IT',  payGrade: 'E6', prd: '2027-06-01', eaos: '2029-12-15', command: 'NAVSTA TESTPORT',           uic: 'XXXX1', billet: 'Network Chief',        lastContact: '2026-03-22', detailer: 'PERS-401' },
-  { id: '9999000012', lastName: 'Lima',    firstName: 'Laura',  rate: 'CTN', payGrade: 'E4', prd: '2026-07-20', eaos: '2027-10-30', command: 'NIOC DEMO',                 uic: 'XXXX2', billet: 'CND Analyst',          lastContact: '2026-03-05', detailer: 'PERS-401' }
+  { id: '9999000001', ssn: '123-45-6789', lastName: 'Alpha',   firstName: 'Aaron',  rate: 'IT',  payGrade: 'E5', prd: '2026-02-15', eaos: '2027-06-30', command: 'USS EXAMPLE (CVN-00)',      uic: 'XXXXX', billet: 'LAN Admin',            lastContact: '2026-01-10', detailer: 'PERS-401' },
+  { id: '9999000002', ssn: '234-56-7890', lastName: 'Bravo',   firstName: 'Beth',   rate: 'IT',  payGrade: 'E6', prd: '2026-05-20', eaos: '2028-09-15', command: 'NAVSTA TESTPORT',           uic: 'XXXX1', billet: 'ISSM',                 lastContact: '2026-03-01', detailer: 'PERS-401' },
+  { id: '9999000003', ssn: '345-67-8901', lastName: 'Charlie', firstName: 'Carlos', rate: 'CTN', payGrade: 'E5', prd: '2026-08-10', eaos: '2027-12-01', command: 'NIOC DEMO',                 uic: 'XXXX2', billet: 'CND Watch Officer',    lastContact: '2026-02-20', detailer: 'PERS-401' },
+  { id: '9999000004', ssn: '456-78-9012', lastName: 'Delta',   firstName: 'Diana',  rate: 'YN',  payGrade: 'E4', prd: '2026-12-01', eaos: '2028-03-15', command: 'COMNAVPERSCOM HQ',           uic: 'XXXX3', billet: 'Admin Clerk',           lastContact: '2026-03-20', detailer: 'PERS-401' },
+  { id: '9999000005', ssn: '567-89-0123', lastName: 'Echo',    firstName: 'Edwin',  rate: 'IT',  payGrade: 'E7', prd: '2027-03-15', eaos: '2030-01-01', command: 'USS PLACEHOLDER (DDG-00)',   uic: 'XXXX4', billet: 'DIVO IT',              lastContact: '2026-02-01', detailer: 'PERS-401' },
+  { id: '9999000006', ssn: '678-90-1234', lastName: 'Foxtrot', firstName: 'Faye',   rate: 'CTN', payGrade: 'E6', prd: '2026-04-01', eaos: '2027-08-20', command: 'NIOC DEMO',                 uic: 'XXXX2', billet: 'Senior CND Analyst',   lastContact: '2026-03-15', detailer: 'PERS-401' },
+  { id: '9999000007', ssn: '789-01-2345', lastName: 'Golf',    firstName: 'George', rate: 'IT',  payGrade: 'E4', prd: '2026-01-15', eaos: '2027-04-10', command: 'NAVSTA TESTPORT',           uic: 'XXXX1', billet: 'Help Desk Tech',       lastContact: '2025-12-20', detailer: 'PERS-401' },
+  { id: '9999000008', ssn: '890-12-3456', lastName: 'Hotel',   firstName: 'Helen',  rate: 'YN',  payGrade: 'E5', prd: '2026-06-30', eaos: '2028-11-30', command: 'COMNAVPERSCOM HQ',           uic: 'XXXX3', billet: 'Personnel Specialist', lastContact: '2026-03-10', detailer: 'PERS-401' },
+  { id: '9999000009', ssn: '901-23-4567', lastName: 'India',   firstName: 'Ivan',   rate: 'CTN', payGrade: 'E7', prd: '2026-09-15', eaos: '2029-06-01', command: 'USS EXAMPLE (CVN-00)',      uic: 'XXXXX', billet: 'Crypto Board Chief',   lastContact: '2026-01-25', detailer: 'PERS-401' },
+  { id: '9999000010', ssn: '012-34-5678', lastName: 'Juliet',  firstName: 'Jane',   rate: 'IT',  payGrade: 'E5', prd: '2026-03-10', eaos: '2027-09-01', command: 'USS PLACEHOLDER (DDG-00)',   uic: 'XXXX4', billet: 'Systems Admin',        lastContact: '2026-02-28', detailer: 'PERS-401' },
+  { id: '9999000011', ssn: '112-23-3445', lastName: 'Kilo',    firstName: 'Kevin',  rate: 'IT',  payGrade: 'E6', prd: '2027-06-01', eaos: '2029-12-15', command: 'NAVSTA TESTPORT',           uic: 'XXXX1', billet: 'Network Chief',        lastContact: '2026-03-22', detailer: 'PERS-401' },
+  { id: '9999000012', ssn: '223-34-4556', lastName: 'Lima',    firstName: 'Laura',  rate: 'CTN', payGrade: 'E4', prd: '2026-07-20', eaos: '2027-10-30', command: 'NIOC DEMO',                 uic: 'XXXX2', billet: 'CND Analyst',          lastContact: '2026-03-05', detailer: 'PERS-401' },
+  ...generateSwoOfficers(100)
 ];
 
 export const SYNTHETIC_COMM_LOG: ICommEntry[] = [

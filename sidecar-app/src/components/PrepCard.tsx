@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { SideCarAdapter } from '../services/SideCarAdapter';
-import { computePRDTier, daysSinceContact } from '../services/PrdEngine';
+import { computePRDTier, daysSinceContact, formatYYMM } from '../services/PrdEngine';
 import type { ISailor, ICommEntry } from '../models/ISailor';
 
 interface PrepCardProps {
@@ -98,7 +98,7 @@ export default function PrepCard({ sailorId, onClose, onOpenRecord }: PrepCardPr
             <span className="block font-data text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-text-muted mb-[8px]">PRD Status</span>
             <div className="flex items-center gap-[12px]">
               <span className={getPrdClass(prd.tier)}>{prd.tier}</span>
-              <span className="font-data text-[0.8125rem] text-text-secondary">{prd.label} · {sailor.prd}</span>
+              <span className="font-data text-[0.8125rem] text-text-secondary">{prd.label} · {formatYYMM(sailor.prd)}</span>
             </div>
           </div>
 

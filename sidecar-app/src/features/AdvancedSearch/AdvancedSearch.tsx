@@ -110,7 +110,8 @@ export function AdvancedSearchPanel({ onClose }: { onClose?: () => void }) {
   const [source, setSource] = useState<SourceType>('sailors');
   const [conditions, setConditions] = useState<Array<ICondition & { id: number }>>([]);
   const [nextId, setNextId] = useState(1);
-  const [results, setResults] = useState<Record<string, unknown>[] | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [results, setResults] = useState<any[] | null>(null);
 
   const handleAddCondition = useCallback((preset?: Partial<ICondition>) => {
     const cols = ADV_COLUMNS[source];
@@ -148,8 +149,10 @@ export function AdvancedSearchPanel({ onClose }: { onClose?: () => void }) {
   };
 
   const runQuery = async () => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const data = await SideCarAdapter.executeAdvancedSearch(source, conditions.map(({ id, ...rest }) => rest));
+    const data = await SideCarAdapter.executeAdvancedSearch(
+      source, 
+      conditions.map(c => ({ column: c.column, operator: c.operator, value: c.value }))
+    );
     setResults(data);
   };
 

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SideCarAdapter } from '../../services/SideCarAdapter';
-import { computePRDTier, daysSinceContact } from '../../services/PrdEngine';
+import { computePRDTier, daysSinceContact, formatYYMM } from '../../services/PrdEngine';
 import type { ISailor } from '../../models/ISailor';
 
 export default function Landing() {
@@ -279,7 +279,7 @@ export default function Landing() {
               </div>
               <div className="py-[6px] px-0">
                 <span className="block text-[0.625rem] font-semibold text-text-muted uppercase tracking-[0.08em] mb-[2px]">PRD</span>
-                <span className="text-[0.8125rem] font-medium text-text-primary leading-[1.3] font-data text-xs">{hoveredSailor.prd}</span>
+                <span className="text-[0.8125rem] font-medium text-text-primary leading-[1.3] font-data text-xs">{formatYYMM(hoveredSailor.prd)}</span>
               </div>
               <div className="py-[6px] px-0">
                 <span className="block text-[0.625rem] font-semibold text-text-muted uppercase tracking-[0.08em] mb-[2px]">EAOS</span>

@@ -61,14 +61,15 @@ export default function Topbar({ showDataMode = false }: TopbarProps) {
   const getPrdClass = (tier: string) => `prd-badge prd-badge--${tier.toLowerCase()}`;
 
   return (
-    <header className="flex items-center justify-between py-sm px-xl bg-white border-b border-surface-border gap-xl sticky top-0 z-50 shadow-[0_2px_10px_rgba(0,0,0,0.03)]">
-      <div className="flex items-center justify-start flex-1 min-w-[150px]">
-        <Link to="/" className="font-display font-extrabold text-xl tracking-widest text-text-primary no-underline transition-colors duration-fast shrink-0 hover:text-brand-gold">
-          SIDE<span className="text-brand-gold font-light">[</span><span className="text-brand-gold font-extrabold">CAR</span><span className="text-brand-gold font-light">]</span>
+    <header className="flex items-center justify-between h-16 px-xl bg-white border-b border-surface-border sticky top-0 z-50">
+      <div className="flex items-center justify-start flex-1 min-w-[250px]">
+        <Link to="/" className="font-display font-extrabold text-xl tracking-widest text-primary-navy no-underline transition-colors duration-fast shrink-0 hover:text-command-gold">
+          SIDE<span className="text-command-gold font-light">[</span><span className="text-command-gold font-extrabold">CAR</span><span className="text-command-gold font-light">]</span>
         </Link>
       </div>
 
-      <div className="flex-[2] w-full max-w-[600px] relative bg-bg-elevated border border-surface-border rounded-lg flex items-center py-[8px] px-[16px] transition-all duration-fast focus-within:border-brand-gold focus-within:shadow-glow" ref={searchRef}>
+      <div className="flex-[2] w-full max-w-[600px] flex justify-center">
+        <div className="w-full relative bg-bg-elevated border border-surface-border rounded-lg flex items-center py-[8px] px-[16px] transition-all duration-fast focus-within:border-brand-gold focus-within:shadow-glow" ref={searchRef}>
         <input
           className="w-full border-none bg-transparent outline-none font-body text-[0.9375rem] text-text-primary"
           type="text"
@@ -120,9 +121,10 @@ export default function Topbar({ showDataMode = false }: TopbarProps) {
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
       </div>
 
-      <div className="flex items-center justify-end flex-1 min-w-[150px] gap-md">
+      <div className="flex items-center justify-end flex-1 min-w-[250px] gap-md">
         {showDataMode && (
           <div className="flex gap-sm items-center">
             <span className="font-data text-[0.625rem] font-semibold text-brand-gold bg-brand-gold-glow py-[2px] px-[8px] rounded-full tracking-widest">SYNTH</span>

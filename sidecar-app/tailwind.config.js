@@ -7,6 +7,11 @@ export default {
   theme: {
     extend: {
       colors: {
+        'primary-navy': '#12203A',
+        'command-gold': '#B38B00',
+        'surface-parchment': '#FDFBF7',
+        'surface-off-white': '#F5F5F5',
+        'border-muted': '#E0E0E0',
         bg: {
           primary: 'var(--color-bg-primary)',
           elevated: 'var(--color-bg-elevated)',
@@ -44,6 +49,7 @@ export default {
         }
       },
       fontFamily: {
+        'sans': ['"Work Sans"', 'sans-serif'],
         display: ['var(--font-display)'],
         body: ['var(--font-body)'],
         data: ['var(--font-data)'],

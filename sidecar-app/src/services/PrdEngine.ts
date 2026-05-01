@@ -19,6 +19,37 @@ export function formatDate(d: Date): string {
 }
 
 /**
+ * Format a YYYY-MM-DD string as YYMM.
+ */
+export function formatYYMM(dateString?: string): string {
+  if (!dateString) return '';
+  const parts = dateString.split('-');
+  if (parts.length >= 2) {
+    const yy = parts[0].slice(-2);
+    const mm = parts[1];
+    return `${yy}${mm}`;
+  }
+  return dateString;
+}
+
+/**
+ * Format a YYYY-MM-DD string as DDMMMYY (e.g., 15APR26).
+ */
+export function formatDDMMMYY(dateString?: string): string {
+  if (!dateString) return '';
+  const parts = dateString.split('-');
+  if (parts.length >= 3) {
+    const yy = parts[0].slice(-2);
+    const mmIndex = parseInt(parts[1], 10) - 1;
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const mmm = months[mmIndex] || '';
+    const dd = parts[2].padStart(2, '0');
+    return `${dd}${mmm}${yy}`;
+  }
+  return dateString;
+}
+
+/**
  * Get today's date at midnight.
  */
 export function today(): Date {

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SideCarAdapter } from '../../services/SideCarAdapter';
-import { computePRDTier, daysSinceContact } from '../../services/PrdEngine';
+import { computePRDTier, daysSinceContact, formatYYMM } from '../../services/PrdEngine';
 import { PIPELINE_STAGES } from '../../services/SyntheticData';
 import type { ISailor, INotification, IOrderStatus, ICommEntry, IAppointment, IPrdResult } from '../../models/ISailor';
 import Topbar from '../../components/Topbar';
@@ -310,7 +310,7 @@ export default function Workspace() {
               <div className="grid grid-cols-2 gap-sm py-md px-lg border-b border-surface-border-subtle">
                 <div className="flex flex-col gap-[2px]">
                   <span className="text-[0.625rem] font-semibold text-text-muted uppercase tracking-[0.08em]">PRD</span>
-                  <span className="font-data text-[0.8125rem] text-text-primary">{selectedSailor.prd}</span>
+                  <span className="font-data text-[0.8125rem] text-text-primary">{formatYYMM(selectedSailor.prd)}</span>
                 </div>
                 <div className="flex flex-col gap-[2px]">
                   <span className="text-[0.625rem] font-semibold text-text-muted uppercase tracking-[0.08em]">EAOS</span>

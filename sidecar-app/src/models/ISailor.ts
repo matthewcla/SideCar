@@ -3,6 +3,7 @@ export interface ISailor {
   lastName: string;
   firstName: string;
   middleName?: string;
+  ssn?: string;
   rate: string;
   payGrade: string;
   designator?: string;
@@ -20,6 +21,20 @@ export interface ISailor {
   education?: IEducation[];
   personalInfo?: IPersonalInfo;
   compassInsights?: ICompassInsights;
+  
+  // Special Interest Flags & Data
+  s_int?: string; // e.g. "4", "6", "8"
+  acc?: string; // e.g. "100"
+  isPregnant?: boolean;
+  isMarriedToActiveDuty?: boolean;
+  hasDependentsInEFMP?: boolean;
+  promotionSelectedButNotAdvanced?: boolean;
+  
+  // Flag state tracking
+  limduAcknowledged?: boolean;
+  opsdefAcknowledged?: boolean;
+  flagsAcknowledged?: boolean;
+  humsStatus?: 'pending' | 'board_convened' | 'approved' | 'disapproved' | null;
 }
 
 export interface IBilletHistory {
@@ -28,6 +43,7 @@ export interface IBilletHistory {
   billet: string;
   startDate: string;
   detachDate: string;
+  bsc?: string;
 }
 
 export interface IQualification {

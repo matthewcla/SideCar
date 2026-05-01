@@ -231,10 +231,8 @@ export const SideCarAdapter = {
     return new Date().toISOString();
   },
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async executeAdvancedSearch(source: 'sailors' | 'billets' | 'commands', conditions: ICondition[]): Promise<any[]> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let dataset: any[] = [];
+  async executeAdvancedSearch(source: 'sailors' | 'billets' | 'commands', conditions: ICondition[]): Promise<(ISailor | IBillet | ICommand)[]> {
+    let dataset: (ISailor | IBillet | ICommand)[] = [];
     if (source === 'sailors') dataset = [...SYNTHETIC_SAILORS];
     if (source === 'billets') dataset = [...SYNTHETIC_BILLETS];
     if (source === 'commands') dataset = [...SYNTHETIC_COMMANDS];
@@ -247,11 +245,12 @@ export const SideCarAdapter = {
 
     for (const cond of conditions) {
       rows = rows.filter(item => {
-        let dataVal = item[cond.column];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let dataVal: any = (item as any)[cond.column];
 
         // Special mappings
         if (source === 'sailors' && cond.column === 'prdTier') {
-          dataVal = computePRDTier(item).tier;
+          dataVal = computePRDTier(item as ISailor).tier;
         }
 
         // Null/undefined → empty string (matches sidecar-concept)

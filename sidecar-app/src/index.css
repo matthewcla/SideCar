@@ -5,9 +5,9 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 :root {
   /* ── Color: Core ────────────────────────────── */
@@ -139,3 +139,25 @@ body {
   background: var(--color-gold-glow);
   color: var(--color-gold);
 }
+
+/* ── ANIMATIONS ─────────────────────────────────── */
+@keyframes flag-glow {
+  0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.6); }
+  50% { box-shadow: 0 0 15px rgba(239, 68, 68, 0.8); border-color: rgba(239, 68, 68, 1); }
+  100% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.4); border-color: rgba(239, 68, 68, 0.6); }
+}
+
+.animate-flag-glow {
+  animation: flag-glow 2s infinite ease-in-out;
+}
+
+@keyframes flag-blink {
+  0% { opacity: 1; }
+  50% { opacity: 0.3; }
+  100% { opacity: 1; }
+}
+
+.animate-flag-blink {
+  animation: flag-blink 1.5s infinite ease-in-out;
+}
+
